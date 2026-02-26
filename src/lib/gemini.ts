@@ -2,7 +2,7 @@
 // PlotGuardian AI — OpenRouter API Integration
 // ──────────────────────────────────────────────
 
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "sk-or-v1-dxchgbnkmjlera87tgpwil5bt hlksgrek";
 const OPENROUTER_MODEL = "deepseek/deepseek-chat";
 
 // Direct OpenRouter endpoint. (CORS proxies often strip Authorization headers causing 401s).
