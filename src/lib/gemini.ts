@@ -2,7 +2,7 @@
 // PlotGuardian AI — OpenRouter API Integration
 // ──────────────────────────────────────────────
 
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "sk-or-v1-vkjehhjvblkavlavfsc5";
 const OPENROUTER_MODEL = "google/gemini-2.0-flash-001"; // Free & fast on OpenRouter
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
