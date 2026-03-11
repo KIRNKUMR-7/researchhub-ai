@@ -2,46 +2,40 @@
 // PlotGuardian AI — OpenRouter API Integration
 // ──────────────────────────────────────────────
 
-const OPENROUTER_API_KEY = "sk-or-v1-dxchgbnkmjlera87tgpwil5bt hlksgrek";
-const OPENROUTER_MODEL = "deepseek/deepseek-chat";
+const OPENROUTER_API_KEY = "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";
+const OPENROUTER_MODEL = "google/gemini-2.0-flash-001"; // Free & fast on OpenRouter
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// Direct OpenRouter endpoint. (CORS proxies often strip Authorization headers causing 401s).
-// Note: If this fails in the browser, 99% of the time it is because an Adblocker (uBlock, Brave Shields) is blocking 'openrouter.ai'.
-// FIX: We use Vite's local proxy to tunnel the request and bypass adblockers locally!
-const API_URL = import.meta.env.DEV
-    ? "/api/openrouter/api/v1/chat/completions"
-    : "https://openrouter.ai/api/v1/chat/completions";
-
-// Simple message format used by AIAssistant
+// Simple message format used throughout the app
 export interface ChatHistoryMessage {
     role: "user" | "ai";
     content: string;
 }
 
-// OpenRouter / OpenAI-compatible format
-interface OpenRouterMessage {
+interface ORMessage {
     role: "system" | "user" | "assistant";
     content: string;
 }
 
 /**
- * Send a message to OpenRouter (DeepSeek).
+ * Send a message to OpenRouter using the OpenAI-compatible chat completions API.
  * @param history      Previous messages in { role: "user"|"ai", content } format
- * @param systemPrompt The full system prompt (including injected plot data)
+ * @param systemPrompt Full system prompt (including injected live plot data)
  */
 export async function sendToGemini(
     history: ChatHistoryMessage[],
     systemPrompt: string
 ): Promise<string> {
 
-    // Guard: truncate system prompt if it would exceed ~12k chars to avoid body-too-large issues
+    // Truncate system prompt if it would exceed ~12k chars
     const safeSystem = systemPrompt.length > 12000
         ? systemPrompt.slice(0, 12000) + "\n...[truncated for length]"
         : systemPrompt;
 
-    const messages: OpenRouterMessage[] = [
+    // Build OpenAI-compatible messages array
+    const messages: ORMessage[] = [
         { role: "system", content: safeSystem },
-        // Keep only last 10 history messages to stay within token limits
+        // Last 10 history messages to stay within context limits
         ...history.slice(-10).map(m => ({
             role: (m.role === "ai" ? "assistant" : "user") as "user" | "assistant",
             content: m.content,
@@ -50,13 +44,13 @@ export async function sendToGemini(
 
     let response: Response;
     try {
-        response = await fetch(API_URL, {
+        response = await fetch(OPENROUTER_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                "HTTP-Referer": "https://plotguardian.app",
-                "X-Title": "PlotGuardian AI",
+                "HTTP-Referer": "https://plotguardian.in",
+                "X-Title": "ResearchHub AI",
             },
             body: JSON.stringify({
                 model: OPENROUTER_MODEL,
@@ -66,14 +60,10 @@ export async function sendToGemini(
             }),
         });
     } catch (networkErr: unknown) {
-        let msg = networkErr instanceof Error ? networkErr.message : String(networkErr);
-        if (msg.includes("Failed to fetch")) {
-            msg += " (Blocked by Adblocker or CORS. Please disable Brave Shields/uBlock Origin for this site to allow OpenRouter API calls).";
-        }
+        const msg = networkErr instanceof Error ? networkErr.message : String(networkErr);
         throw new Error(`Network error: ${msg}`);
     }
 
-    // Read body text regardless of status so we can show a useful error
     const bodyText = await response.text();
 
     if (!response.ok) {
@@ -97,8 +87,9 @@ export async function sendToGemini(
     const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) {
         console.error("OpenRouter Full Response:", data);
-        throw new Error(`Empty response from OpenRouter API. Raw data: ${JSON.stringify(data).slice(0, 300)}`);
+        throw new Error(`Empty response from OpenRouter. Raw: ${JSON.stringify(data).slice(0, 300)}`);
     }
+
     return text;
 }
 

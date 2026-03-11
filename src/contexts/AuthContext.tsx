@@ -1,13 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { userDb, hashPassword, seedDemoData, type User } from "../lib/db";
-
-// Simple session persistence via localStorage
-const SESSION_KEY = "pg_session_uid";
-const sessionStore = {
-    get: (): string | null => localStorage.getItem(SESSION_KEY),
-    set: (id: string) => localStorage.setItem(SESSION_KEY, id),
-    clear: () => localStorage.removeItem(SESSION_KEY),
-};
+import { type User, seedDemoData } from "../lib/db";
 
 interface AuthContextType {
     user: User | null;
@@ -24,53 +16,102 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Restore session on mount
     useEffect(() => {
-        const userId = sessionStore.get();
-        if (userId) {
-            const found = userDb.getById(userId);
-            if (found) setUser(found);
-            else sessionStore.clear();
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Token invalid');
+                    return res.json();
+                })
+                .then(data => {
+                    setUser(data.user);
+                })
+                .catch(() => {
+                    localStorage.removeItem('token');
+                    setUser(null);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        } else {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-        const found = userDb.getByEmail(email);
-        if (!found) return { success: false, error: "No account found with that email." };
-        if (found.passwordHash !== hashPassword(password)) {
-            return { success: false, error: "Incorrect password. Please try again." };
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); } catch (e) { }
+            if (!res.ok) throw new Error((data && data.error) || 'Login failed: ' + text);
+
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            return { success: true };
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : "Unknown error";
+            return { success: false, error: msg };
         }
-        sessionStore.set(found.id);
-        setUser(found);
-        return { success: true };
     };
 
     const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         if (!name.trim()) return { success: false, error: "Please enter your full name." };
         if (!email.includes("@")) return { success: false, error: "Please enter a valid email." };
         if (password.length < 6) return { success: false, error: "Password must be at least 6 characters." };
-        const existing = userDb.getByEmail(email);
-        if (existing) return { success: false, error: "An account with this email already exists." };
-        const newUser = userDb.create(name, email, password);
-        seedDemoData(newUser.id);
-        sessionStore.set(newUser.id);
-        setUser(newUser);
-        return { success: true };
+
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); } catch (e) { }
+            if (!res.ok) throw new Error((data && data.error) || 'Registration failed: ' + text);
+
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            seedDemoData(data.user.id);
+            return { success: true };
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : "Unknown error";
+            return { success: false, error: msg };
+        }
     };
 
     const logout = () => {
-        sessionStore.clear();
+        localStorage.removeItem('token');
         setUser(null);
     };
 
-    const updateUser = (updates: Partial<User>) => {
+    const updateUser = async (updates: Partial<User>) => {
         if (!user) return;
-        // Update in localStorage
-        const all = JSON.parse(localStorage.getItem("pg_users") ?? "[]") as User[];
-        const updated = all.map(u => u.id === user.id ? { ...u, ...updates } : u);
-        localStorage.setItem("pg_users", JSON.stringify(updated));
-        setUser({ ...user, ...updates });
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('/api/auth/me', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updates)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user);
+            }
+        } catch (error) {
+            console.error("Update failed", error);
+        }
     };
 
     return (

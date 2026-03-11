@@ -17,7 +17,6 @@ const QUICK_PROMPTS = [
 
 // Build a comprehensive system context including all actual plot data
 function buildSystemContext(plots: Plot[], userId: string): string {
-    // Gather compliance for each plot
     const plotData = plots.map(p => {
         const comp = complianceDb.getByPlot(p.id);
         const investPct = comp && p.investmentCommitted > 0
@@ -28,47 +27,68 @@ function buildSystemContext(plots: Plot[], userId: string): string {
             : 0;
 
         return `
-PLOT: ${p.plotNumber}
-  Company: ${p.company}
-  Allottee: ${p.allotteeName}
-  Sector: ${p.sector}
-  Location: ${p.location}
-  Area: ${p.area} sqm
-  Status: ${p.status.toUpperCase()}
-  Allotment Date: ${p.allotmentDate || "not set"}
-  Lease Period: ${p.leaseStartDate || "?"} to ${p.leaseEndDate || "?"}
-  Investment Committed: ₹${p.investmentCommitted}L | Actual: ₹${comp?.investmentActual ?? 0}L (${investPct}% achieved)
-  Employment Committed: ${p.employmentCommitted} jobs | Actual: ${comp?.employmentActual ?? 0} jobs (${empPct}% achieved)
-  Caution Deposit: ₹${p.cautionDeposit}L — Status: ${comp?.cautionStatus?.replace(/_/g, " ") ?? "unknown"}
-  Land Cost Subsidy Eligible: ₹${p.landCostSubsidy}L — Status: ${comp?.subsidyStatus?.replace(/_/g, " ") ?? "unknown"}
-  Construction Started: ${comp?.constructionStarted ? "Yes" : "No"}
-  Construction Completed: ${comp?.constructionCompleted ? "Yes" : "No"}
-  Production Started: ${comp?.productionStarted ? "Yes (" + (comp.productionStartDate ?? "") + ")" : "No"}
-  Remarks: ${comp?.inspectionRemarks || "None"}
-  Notes: ${p.notes || "None"}`;
+── PLOT RECORD ──────────────────────────────
+Plot Number   : ${p.plotNumber}
+Company       : ${p.company}
+Allottee      : ${p.allotteeName}
+Sector/Industry: ${p.sector}
+Location      : ${p.location}
+Area          : ${p.area} sqm
+STATUS        : ${p.status.toUpperCase()}
+Allotment Date: ${p.allotmentDate || "not set"}
+Lease Period  : ${p.leaseStartDate || "?"} → ${p.leaseEndDate || "?"}
+Investment
+  Committed   : ₹${p.investmentCommitted}L
+  Actual      : ₹${comp?.investmentActual ?? 0}L  (${investPct}% achieved)
+Employment
+  Committed   : ${p.employmentCommitted} jobs
+  Actual      : ${comp?.employmentActual ?? 0} jobs  (${empPct}% achieved)
+Caution Deposit: ₹${p.cautionDeposit}L — Status: ${comp?.cautionStatus?.replace(/_/g, " ") ?? "not set"}
+Land Cost Subsidy Eligible: ₹${p.landCostSubsidy}L — Status: ${comp?.subsidyStatus?.replace(/_/g, " ") ?? "not set"}
+Construction Started : ${comp?.constructionStarted ? "YES" : "NO"}
+Construction Completed: ${comp?.constructionCompleted ? "YES" : "NO"}
+Production Started   : ${comp?.productionStarted ? "YES (" + (comp.productionStartDate ?? "") + ")" : "NO"}
+Inspection Remarks: ${comp?.inspectionRemarks || "None"}
+Notes: ${p.notes || "None"}`;
     }).join("\n");
 
-    return `You are PlotGuardian AI — an intelligent compliance monitoring assistant for SIDCO/TIDCO/SIPCOT/TIIC industrial plot officers in Tamil Nadu, India.
+    const summary = {
+        total: plots.length,
+        compliant: plots.filter(p => p.status === "compliant").length,
+        pending: plots.filter(p => p.status === "pending").length,
+        defaulting: plots.filter(p => p.status === "defaulting").length,
+        closed: plots.filter(p => p.status === "closed").length,
+    };
 
-You have DIRECT ACCESS to the following LIVE PLOT DATABASE with ${plots.length} plots. Use this data to answer every question specifically and accurately. Do NOT say you don't have access to plot data — you do:
+    return `You are ResearchHub AI — the compliance intelligence system for SIDCO/TIDCO/SIPCOT/TIIC industrial plot monitoring in Tamil Nadu.
 
-═══ LIVE PLOT DATABASE (${new Date().toLocaleDateString("en-IN")}) ═══
-${plotData || "No plots registered yet. Ask the officer to add plots via Plot Directory."}
-═══════════════════════════════════════
+══════════════════════════════════════════════════════
+CRITICAL INSTRUCTIONS — READ BEFORE EVERY REPLY:
+══════════════════════════════════════════════════════
+1. You have DIRECT ACCESS to the COMPLETE LIVE DATABASE below (${plots.length} plots). USE IT.
+2. NEVER say "I don't have access", "I cannot tell", or "please check the database". You ARE the database.
+3. When asked about ANY plots, LIST THEM BY NAME with their actual data. Be specific, not generic.
+4. Always reference plot numbers and company names in your answers.
+5. Give concrete numbers — investment amounts, percentages, job counts, dates.
+6. If a question matches multiple plots, list ALL matching plots.
+7. "Plots for sale" = plots with status CLOSED (vacated/available). List them by name.
+8. Format answers clearly: use bullet points or a mini-table for multiple plots.
+9. If data is missing for a field, say "not updated" — don't hide it.
+10. Be direct, concise, and data-driven. No fluff.
 
-Your responsibilities:
-1. Answer questions about specific plots using the exact data above
-2. Identify non-compliant, defaulting, or pending plots and name them specifically
-3. Explain SIPCOT/SIDCO/TIDCO allotment order terms, lease deed conditions, and subsidy rules
-4. Advise on caution deposit refund eligibility, investment/employment commitment tracking
-5. Flag risks: over-due deadlines, unfulfilled commitments, expired documents
+══ PORTFOLIO SUMMARY ══
+Total: ${summary.total} | Compliant: ${summary.compliant} | Pending: ${summary.pending} | Defaulting: ${summary.defaulting} | Closed: ${summary.closed}
 
-Rules:
-- Always refer to plots by their plot number and company name
-- Give specific data-driven answers, not generic redirection to websites
-- Be concise, professional, and action-oriented
-- If asked about "available" or "for sale" plots, check the status field — plots with status "closed" may be vacated/available; guide officer to add new allotments via Plot Directory
-- If data is incomplete, say what IS known and what the officer needs to update`;
+══ LIVE PLOT DATABASE (as of ${new Date().toLocaleDateString("en-IN")}) ══
+${plotData || "⚠️ No plots registered yet. Officer should add plots via Plot Directory."}
+══════════════════════════════════════════════
+
+Your role: Instantly answer any question about the above plots using the exact data. Examples of what you MUST do:
+- "Which plots are defaulting?" → List each defaulting plot with company name, how much investment they missed, how many jobs short
+- "What is the caution deposit status?" → List every plot's caution deposit amount and current status
+- "Which plots are for sale?" → List CLOSED plots by name
+- "Plot X details?" → Dump all fields for that specific plot
+- "Investment summary?" → List every plot's ₹ committed vs actual and %`;
 }
 
 export default function AIAssistant() {
@@ -83,11 +103,16 @@ export default function AIAssistant() {
 
     useEffect(() => {
         if (!user) return;
-        seedDemoData(user.id);
-        setMessages(chatDb.getByUser(user.id));
-        const p = plotDb.getByUser(user.id);
-        setPlots(p);
-        setDbLoaded(true);
+        const init = async () => {
+            await seedDemoData(user.id);
+            await chatDb.fetchByUser(user.id);
+            setMessages(chatDb.getByUser(user.id));
+            const p = await plotDb.fetchByUser(user.id);
+            setPlots(p);
+            await complianceDb.fetchByUser(user.id);
+            setDbLoaded(true);
+        };
+        init();
     }, [user?.id]);
 
     useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -119,7 +144,7 @@ export default function AIAssistant() {
                 .slice(-12) // last 12 messages for context window management
                 .map(m => ({ role: m.role as "user" | "ai", content: m.content }));
 
-            const reply = await sendToGemini(history, fullSystem + "\n\nOfficer: " + content);
+            const reply = await sendToGemini([...history, { role: "user", content }], fullSystem);
             const aiMsg = chatDb.add({
                 userId: user.id, role: "ai", content: reply,
                 timestamp: new Date().toISOString(),
@@ -197,7 +222,7 @@ export default function AIAssistant() {
                             <div className="w-16 h-16 rounded-3xl gradient-primary flex items-center justify-center mx-auto mb-4 pulse-glow">
                                 <Bot className="w-8 h-8 text-white" />
                             </div>
-                            <p className="font-bold text-lg" style={{ color: "#1D1D1F" }}>PlotGuardian AI</p>
+                            <p className="font-bold text-lg" style={{ color: "#1D1D1F" }}>ResearchHub AI</p>
                             <p className="text-sm mt-1 mb-1" style={{ color: "#8A8A8E" }}>
                                 Your intelligent compliance advisor — knows your {plots.length} plots
                             </p>

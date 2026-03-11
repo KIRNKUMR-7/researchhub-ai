@@ -11,12 +11,11 @@ export default defineConfig({
       overlay: false,
     },
     proxy: {
-      '/api/openrouter': {
-        target: 'https://openrouter.ai',
+      '/api': {
+        target: 'http://localhost:5001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/openrouter/, ''),
-      },
-    },
+      }
+    }
   },
   plugins: [react()],
   resolve: {

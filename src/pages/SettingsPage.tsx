@@ -46,8 +46,8 @@ const SettingsPage = () => {
             animate={{ opacity: 1, x: 0 }}
           >
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <User className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#1B3C2A" }}>
+                <User className="w-5 h-5" style={{ color: "#B5FF4D" }} />
               </div>
               <div>
                 <h3 className="font-display font-semibold text-foreground">Profile</h3>
@@ -76,8 +76,9 @@ const SettingsPage = () => {
               <div className="flex items-center gap-3">
                 <motion.button
                   type="submit"
-                  className="px-5 py-2 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm flex items-center gap-2"
-                  whileHover={{ scale: 1.03 }}
+                  className="px-5 py-2 rounded-lg text-white font-semibold text-sm flex items-center gap-2 transition-all"
+                  style={{ background: "#1B3C2A" }}
+                  whileHover={{ scale: 1.03, background: "#264D37" }}
                   whileTap={{ scale: 0.97 }}
                 >
                   <Save className="w-4 h-4" />
@@ -106,8 +107,8 @@ const SettingsPage = () => {
             transition={{ delay: 0.1 }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Key className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#1B3C2A" }}>
+                <Key className="w-5 h-5" style={{ color: "#B5FF4D" }} />
               </div>
               <div>
                 <h3 className="font-display font-semibold text-foreground">AI Integration</h3>
@@ -130,8 +131,8 @@ const SettingsPage = () => {
               transition={{ delay: (i + 2) * 0.08 }}
               whileHover={{ x: 6 }}
             >
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <item.icon className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#1B3C2A" }}>
+                <item.icon className="w-5 h-5" style={{ color: "#B5FF4D" }} />
               </div>
               <div>
                 <h3 className="font-display font-semibold text-foreground">{item.title}</h3>

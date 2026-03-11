@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const dateStr = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#F2F3F7" }}>
+    <div className="min-h-screen flex" style={{ background: "#F5F7F2" }}>
       <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
 
       <main className="flex-1 min-h-screen flex flex-col transition-all duration-300" style={{ marginLeft: sidebarWidth }}>

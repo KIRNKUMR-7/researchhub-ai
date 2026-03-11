@@ -13,13 +13,13 @@ interface AppSidebarProps {
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", color: "hsl(211 100% 50%)" },
-  { icon: Map, label: "Plot Directory", path: "/plots", color: "hsl(142 71% 40%)" },
-  { icon: ClipboardCheck, label: "Compliance", path: "/compliance", color: "hsl(252 85% 60%)" },
-  { icon: Bot, label: "AI Assistant", path: "/assistant", color: "hsl(280 70% 55%)" },
-  { icon: FileText, label: "Documents", path: "/documents", color: "hsl(38 100% 50%)" },
-  { icon: BarChart3, label: "Reports", path: "/reports", color: "hsl(0 84% 55%)" },
-  { icon: Settings, label: "Settings", path: "/settings", color: "hsl(240 4% 50%)" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Map, label: "Plot Directory", path: "/plots" },
+  { icon: ClipboardCheck, label: "Compliance", path: "/compliance" },
+  { icon: Bot, label: "AI Assistant", path: "/assistant" },
+  { icon: FileText, label: "Documents", path: "/documents" },
+  { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
@@ -41,18 +41,26 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
     >
       {/* Header */}
       <div className="flex items-center px-4 flex-shrink-0"
-        style={{ height: 44, borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-            <Shield className="w-3.5 h-3.5 text-white" />
+        style={{ height: 52, borderBottom: "1px solid rgba(181,255,77,0.1)" }}>
+        <div className="flex items-center gap-2.5">
+          {/* Logo mark */}
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "#B5FF4D" }}>
+            <Shield className="w-4 h-4" style={{ color: "#0F1F16" }} />
           </div>
           <AnimatePresence>
             {!collapsed && (
-              <motion.span
+              <motion.div
                 initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }}
-                className="text-sm font-bold whitespace-nowrap tracking-tight overflow-hidden" style={{ color: "#1D1D1F" }}>
-                PlotGuardian
-              </motion.span>
+                className="overflow-hidden"
+              >
+                <p className="text-sm font-bold whitespace-nowrap tracking-tight" style={{ color: "#FFFFFF" }}>
+                  ResearchHub
+                </p>
+                <p className="text-[9px] font-semibold uppercase tracking-widest whitespace-nowrap" style={{ color: "rgba(181,255,77,0.6)" }}>
+                  AI Platform
+                </p>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -61,7 +69,7 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
       {/* Section label */}
       {!collapsed && (
         <div className="px-3 pt-5 pb-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest px-2" style={{ color: "#AEAEB2" }}>Monitor</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest px-2" style={{ color: "rgba(255,255,255,0.2)" }}>Monitor</p>
         </div>
       )}
 
@@ -72,12 +80,7 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
           return (
             <Link key={item.path} to={item.path}>
               <motion.div
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
-                style={{
-                  color: isActive ? item.color : "#6E6E73",
-                  background: isActive ? `${item.color.replace("hsl(", "hsl(").replace(")", " / 0.1)")}` : "transparent",
-                  boxShadow: isActive ? `inset 0 0 0 1px ${item.color.replace(")", " / 0.2)")}` : "none",
-                }}
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${isActive ? "zf-nav-item active" : "zf-nav-item"}`}
                 whileTap={{ scale: 0.97 }}
                 title={collapsed ? item.label : undefined}
               >
@@ -86,7 +89,7 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
                   {!collapsed && (
                     <motion.span
                       initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }}
-                      className="whitespace-nowrap overflow-hidden font-semibold">
+                      className="whitespace-nowrap overflow-hidden text-sm font-semibold">
                       {item.label}
                     </motion.span>
                   )}
@@ -98,17 +101,18 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 py-3 space-y-0.5" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+      <div className="px-2 py-3 space-y-0.5" style={{ borderTop: "1px solid rgba(181,255,77,0.08)" }}>
         {user && (
           <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-default ${collapsed ? "justify-center" : ""}`}>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white gradient-primary">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+              style={{ background: "#B5FF4D", color: "#0F1F16" }}>
               {initials}
             </div>
             <AnimatePresence>
               {!collapsed && (
                 <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} className="overflow-hidden min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: "#1D1D1F" }}>{user.name}</p>
-                  <p className="text-[10px] truncate" style={{ color: "#8A8A8E" }}>{(user as any).role ?? "Officer"}</p>
+                  <p className="text-xs font-semibold truncate" style={{ color: "#FFFFFF" }}>{user.name}</p>
+                  <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>{(user as any).role ?? "Officer"}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -116,12 +120,12 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
         )}
 
         <button onClick={handleLogout} className="w-full">
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-red-50"
-            style={{ color: "#8A8A8E" }} title={collapsed ? "Sign out" : undefined}>
+          <div className="zf-nav-item w-full hover:!text-red-400"
+            title={collapsed ? "Sign out" : undefined}>
             <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
             <AnimatePresence>
               {!collapsed && (
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="whitespace-nowrap hover:text-red-500 transition-colors">
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="whitespace-nowrap text-sm">
                   Sign Out
                 </motion.span>
               )}
@@ -130,12 +134,11 @@ const AppSidebar = ({ collapsed, onCollapse }: AppSidebarProps) => {
         </button>
 
         <button onClick={() => onCollapse(!collapsed)} className="w-full">
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100"
-            style={{ color: "#8A8A8E" }} title={collapsed ? "Expand" : "Collapse"}>
+          <div className="zf-nav-item w-full" title={collapsed ? "Expand" : "Collapse"}>
             {collapsed ? <ChevronRight className="w-[18px] h-[18px] flex-shrink-0" /> : <ChevronLeft className="w-[18px] h-[18px] flex-shrink-0" />}
             <AnimatePresence>
               {!collapsed && (
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="whitespace-nowrap">Collapse</motion.span>
+                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="whitespace-nowrap text-sm">Collapse</motion.span>
               )}
             </AnimatePresence>
           </div>
